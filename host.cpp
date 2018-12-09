@@ -1,6 +1,9 @@
 #include <iostream>
 #include <fstream>
-#include <string>
+#include <string.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <fcntl.h>
 
 using namespace std;
 
@@ -40,20 +43,26 @@ int main(int argc, char **argv) {
     else
         newHost.message = " ";
     printHost(newHost);
-
     readFile();
     return 0;
 }
 
 void readFile()
 {
-    ifstream fileOpen("host.txt");
-    string line;
-    while(fileOpen >> line)
+    streampos b;
+    while(1)
     {
+        ifstream fileOpen("host.txt");
+        fileOpen.seekg(b);
+        string line;
+        fileOpen >> line;
         cout << line << endl;
+        if(fileOpen.tellg() != -1)
+            b = fileOpen.tellg();
+        sleep(1);
+        fileOpen.close();
     }
-    fileOpen.close();
+
 }
 
 void printHost(struct host newHost)
