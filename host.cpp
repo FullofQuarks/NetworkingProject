@@ -60,7 +60,7 @@ void readFile(string fromFile)
         ifstream fileOpen(fromFile);
         fileOpen.seekg(b);
         string line;
-        fileOpen >> line;
+        getline(fileOpen, line);
         cout << line << endl;
         if(fileOpen.tellg() != -1)
             b = fileOpen.tellg();
