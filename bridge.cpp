@@ -85,6 +85,25 @@ void process(string newFrame, struct bridge *b, int port)
     {
         b->hostCache[sourceEthAddr][0] = port;
     }
+
+    //We've extracted the layer 2 headers, now get the remainder of the frame
+    string restOfFrame;
+    getline(ss, restOfFrame);
+
+    //But where to forward the frame to?
+    if(b->hostCache[destEthAddr][0] == 0) //The destination ethernet address is unknown
+    {
+        //Broadcast to get port
+        //ARP section
+    }
+    else //Destination ethernet address known, forward frame to that port
+    {
+        ofstream toFile;
+        string toFilename = "toB";
+        toFilename = toFilename + to_string(b->id) + "P" + to_string(b->hostCache[destEthAddr][0]) + ".txt";
+        toFile.open(toFilename, ios::app);
+    }
+
 }
 
 vector<string> createFiles(int bid, int numPorts)
