@@ -45,6 +45,7 @@ You will write three programs, one program for hosts, one program for routers, a
 program for bridges. The above Internetwork would be "created" by typing the following at the
 Unix command line prompt (which I simply assume is >)
 
+```bash
 > host .... &
 > host .... &
 > bridge .... &
@@ -55,6 +56,7 @@ Unix command line prompt (which I simply assume is >)
 > router ... &
 > router ... &
 > router ... &
+```
 
 where "host" is the code you wrote for a host process, "bridge" is the code for a bridge process,
 and "router" is the code for a router process, "..." are the arguments of each process (which I
@@ -113,7 +115,11 @@ The IP address of a "destination node" to whom it wants to send a data string
 The data string itself (which is just an arbitrary string of text)
 
 For example, the host in network 1 could have the following arguments
+
+```bash
 > host 1 1 29 1 2 1 1 3 3  "This is a string I want to send to node (3, 3)"
+```
+
 Its IP address is (1,1), its Ethernet address is 29, its default router is (1, 2),  the ID of the
 bridge it is attached to is 1, the port number of the bridge to which it is attached to is 1, the IP
 address of the destination node to which it wants to send a data string is (3,3), and the string it
@@ -136,7 +142,9 @@ The arguments to a router are three values for each network to which it is attac
 3. the Ethernet address of the router (in that particular network)
 E.g.,  the router than joins network 4 and network 3, would have the following argumen
 
+```bash
 > router 4 2  4 5 18  3 1 5 5 75
+```
 
 The router is connected to two networks. In the first one, its IP address is (4, 2), the bridge ID
 is 4 and the port of the bridge is 5, and the Ethernet address of the router is 18. In the second
@@ -150,7 +158,9 @@ The number of ports in the bridge
 A list of neighboring bridges (if any)
 For example, Bridge 1 will have the following arguments
 
+```bash
 > bridge 1 6 2
+```
 
 The bridge ID is 1, it has six ports (1 .. 6), and it has only one neighbor (it could have more, but
 I only have one in the picture), which is B2.
@@ -330,13 +340,16 @@ and give the message to the appropriate layer. E.g., if it is an IP message,  it
 if it is an ARP message, it gives the message to ARP.
 
 Thus, the program "skeleton" of a host could look something like this
->main()
->    open the input and output text file of the host.
->   do forever {
->        call transport-periodic-tasks
->        call Ethernet-receive-from-Bridge
->        sleep 1 second   // the sleep is necessary to prevent you from using lots of CPU time
->}
+
+```c++
+main()
+   //open the input and output text file of the host.
+   do forever {
+        call transport-periodic-tasks
+        call Ethernet-receive-from-Bridge
+        sleep 1 second   // the sleep is necessary to prevent you from using lots of CPU time
+}
+```
 
 ### Layers of Routers and Bridges
 If you understand how hosts behave, you should be able to do routers and bridges. Bridges are
