@@ -48,7 +48,6 @@ int main(int argc, char **argv) {
 
     //Create file if not exist
     createFiles(fromFile);
-    printHost(newHost);
     readFile(fromFile);
     return 0;
 }
