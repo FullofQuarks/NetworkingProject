@@ -30,22 +30,22 @@ int main(int argc, char **argv) {
     }
 
     struct host newHost;
-    newHost.ip[0] = argv[1][0] - '0';
-    newHost.ip[1] = argv[2][0] - '0';
+    newHost.ip[0] = strtol(argv[1], NULL, 10);
+    newHost.ip[1] = strtol(argv[2], NULL, 10);
     newHost.ethAddr = strtol(argv[3], NULL, 10);
-    newHost.gateway[0] = argv[4][0] - '0';
-    newHost.gateway[1] = argv[5][0] - '0';
+    newHost.gateway[0] = strtol(argv[4], NULL, 10);
+    newHost.gateway[1] = strtol(argv[5], NULL, 10);
     newHost.bridge = strtol(argv[6], NULL, 10);
     newHost.bridgePort = strtol(argv[7], NULL, 10);
-    newHost.toIP[0] = argv[8][0] - '0';
-    newHost.toIP[1] = argv[9][0] - '0';
+    newHost.toIP[0] = strtol(argv[8], NULL, 10);
+    newHost.toIP[1] = strtol(argv[9], NULL, 10);
     string fromFile = "toB";
     fromFile = fromFile + argv[6] + "P" + argv[7] + ".txt";
     if(argc == 11)
         newHost.message = argv[10];
     else
         newHost.message = " ";
-
+printHost(newHost);
     //Create file if not exist
     createFiles(fromFile);
     readFile(fromFile);
