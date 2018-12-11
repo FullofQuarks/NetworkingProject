@@ -184,100 +184,129 @@ That will allow us to view the messages in a simple way with a regular text edit
 simplify things for you when you parse the input files of a node.
 
 ### Functionality of Routers
-Basic IP forwarding
+#### Basic IP forwarding
 The main function of routers is to forward "IP" messages until the message reaches its ultimate
 destination (the destination host). So, routers need to find a path to reach any network. To do
 so, we will use a very simple routing protocol: broadcast :)
+
 IP messages have the following format
 IP destination-IP source-IP <contents of a transport layer message>
 E.g.
 IP 1 1 3 3 etc.
+
 where IP is just the string "IP", (1, 1) is the destination IP address, and (3, 3) is the source IP
 address.
+
 When the router receives an IP message whose destination is in one of its attached networks, it
 most find out the Ethernet address of the destination via ARP (which is described below). Then,
 the router forwards the message to the bridge by encapsulating the message into an Ethernet
 packet, and appending the Ethernet packet to the input file of the bridge attached to the
 router. Of course, the bridge then will forward this packet to the host.
-ARP
+
+#### ARP
 For ARP, if a router does not know the Ethernet address of a node (host or router), it stores in a
 buffer the message (e.g IP message) that it wanted to send, and it broadcasts an ARP request
 over the Ethernet.
+
 When the ARP reply returns, it then forwards the stored message (e.g. the IP message) to the
 bridge using the appropriate Ethernet destination address.
+
 ARP-request messages are of the following form
+
 ARP REQ target-IP-address source-IP-address source-Ethernet-address
+
 where target-IP-address is the IP address of the node you are looking for
+
 An ARP reply is of the following form
+
 ARP REP target-IP-address target-Ethernet-address source-IP-address source-Ethernet-address
+
 where the target is the node sending the reply, and the source is the node who sent the
 request.
-Forwarding to Other Networks
+
+#### Forwarding to Other Networks
 When a router receives an IP message whose destination is not in any of its attached
 networks,  the router will perform a broadcast along all the networks (NOT an Ethernet
 broadcast, but a broadcast that will reach all routers). The router encapsulates the contents of
 the IP packet into another type of packet, a broadcast (BC) packet, whose format is
+
 BC src-router-IP-address sequence-number destination-network-number <IP packet being
 encapsulated>
+
 where src-router-IP-address is the router who performs the encapsulation, sequence number is
 a number that the source router increases by one every time it encapsulates an IP packet, and
 destination-network-number is the network number to which the IP packet has to be delivered.
+
 The router then sends this BC packet to all its neighboring routers (you may have to call ARP
 for them) via the Bridge.
-file:///media/jcobb/UTD-HDD/UTD-Files/Classes/...
-6 of 9 10/25/18, 5:24 PM
+
 When a router receives a BC message, and the destination-network-number is attached to this
 router, the router recovers the IP packet, and delivers it to its destination host (via the bridge
 and ARP of course)
+
 If the destination-network-number is not attached to this router, and the router has not seen
 this packet before (it has not seen this sequence number from the source router), then it
 forwards a copy of the message (without altering it in any way) to all its neighboring routers on
 networks other than the network from which this message this received (obviously).
+
 In this way, the message will propagate to all networks until it reaches the destination, and the
 sequence number prevents the packet from looping.  
-Hello Protocol.
+
+#### Hello Protocol.
 In order for the above to work, each router needs to be aware of all its neighbors in the same
 network. Thus, in each of its networks, the router will broadcast (using Ethernet broadcast) a
 "hello" message of the following form
+
 HL router-ip-address router-Ethernet-address
+
 This will inform all other nodes (routers, because hosts will ignore this message) that this
 router exists on this network
+
 When a router receives a HL message from another router, it adds the router to its list of
 neighbors.
+
 Hello messages will be sent by the router once every five seconds (the first hello message is
 sent at time zero).
-Functionality of Hosts
+
+### Functionality of Hosts
 The host's purpose is to transfer the string given in the argument to the destination host. To do
 so, the "transport layer" (above IP) will grab the string, cut it into 5-bye pieces, and use the
 conurrent logical channels protocol to transfer it to the destination. The transport layer will
 thus have two message types, data (DA) and acknowledgement (AK) of the following format
+
 DA sn cn <5 bytes of the string>
+
 where sn is the sequence number (in our case, either 0 or 1), and cn is the channel number (in
 our case, only two channels, 0 or 1)
+
 Acknowledgments are simply of the form
+
 AK sn cn
+
 If an ack is not received within 30 seconds of sending the data message, then the data message
 will be retransmitted.
+
 Both the data and acknowledgments have to be given to the IP layer to be encapsulated and
 turned into IP messages which will travel the network and reach the destination.
 Note that we also need to do ARP, this is similar to the description given for the router.
-file:///media/jcobb/UTD-HDD/UTD-Files/Classes/...
-7 of 9 10/25/18, 5:24 PM
-Protocol layers and Program Skeleton
-Layers of Hosts
+
+## Protocol layers and Program Skeleton
+### Layers of Hosts
 Each host will have a transport layer, the IP layer, and the Ethernet layer. I overview next their
 interaction. The host also has additional layers (ARP) , but you can figure that out on your own
 :)
+
 Adjacent layers talk to each other. The way I recommend, is to have subroutines for the
 interfaces between layers. You can define your own if you like, you don't have to follow mine
 exactly, they are just a guideline, and I leave it up to you to define the arguments, parameters,
 etc between them.
-Transport-periodic-tasks
+
+- **Transport-periodic-tasks**
 This procedure is called once a second by the main routine of the program. The transport layer
 checks if there is anything new to do. E.g., if there is data ready to send, send it (give it to IP),
 if a timer expired (if enough seconds have ellapsed from sending the message) then retransmit
 the data message (by giving it again to IP), etc.
-Transport-receive-from-IP
+- **Transport-receive-from-IP**
 The IP layer calls this routine when it has a transport-layer message that it received. The
 transport layer will then examine the message (it could be a data message or an ack) and
 processes the message accordingly.
