@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <vector>
 #include <sstream>
+#include <string>
 
 using namespace std;
 
@@ -14,7 +15,7 @@ struct bridge {
     int id;
     int numPorts;
     int *neighbors;
-    int hostCache[100][1] = {0};
+    int hostCache[100][1] = {};
 };
 
 //Functions
@@ -30,7 +31,7 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    struct bridge *newBridge;
+    struct bridge *newBridge = (struct bridge *)malloc(sizeof(struct bridge));
     newBridge->id = strtol(argv[1], NULL, 10);
     newBridge->numPorts = strtol(argv[2], NULL, 10);
     newBridge->neighbors = new int[argc-3];
@@ -52,7 +53,7 @@ void readFile(vector<string> files, struct bridge *b)
 
     while(1)
     {
-        for(int ix = 0; ix < files.size(); ++ix)
+        for(size_t ix = 0; ix < files.size(); ++ix)
         {
             ifstream fileOpen(files.at(ix));
             fileOpen.seekg(pos[ix]);
