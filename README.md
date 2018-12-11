@@ -310,40 +310,41 @@ the data message (by giving it again to IP), etc.
 The IP layer calls this routine when it has a transport-layer message that it received. The
 transport layer will then examine the message (it could be a data message or an ack) and
 processes the message accordingly.
-IP-receive-from-transport
+- **IP-receive-from-transport**
 This is a procedure called by the transport layer. In it, the IP layer receives a transport
 message that is to be forwarded across the Internet until it reaches the destination. The
 destination IP address is a parameter of the procedure. IP will then forward the message to the
 Ethernet layer, and may have to call ARP before doing so.
-IP-receive-from-Ethernet
+- **IP-receive-from-Ethernet**
 This procedure is called by the Ethernet layer after the Ethernet receives an IP message. The
 IP layer  retrieves the transport layer message from inside the IP packet, and gives this
 message to the transport layer, by calling the procedure Transport-receive-from-IP.
-Ethernet-receive-from-IP
+- **Ethernet-receive-from-IP**
 This is a procedure called by the IP layer when it wants to give an IP message to the Ethernet
 layer to be sent over the network. IP must include as a parameter the Ethernet address of the
 node it wants to send the message to.
-Ethernet-receive-from-Bridge
+- **Ethernet-receive-from-Bridge**
 This routine is called one-per-second by the main routine of the host program. It will read all
 the new messages from the text file of the bridge, decapsulate the contents of the message,
 and give the message to the appropriate layer. E.g., if it is an IP message,  it calls IP-receivefrom-Ethernet,
 if it is an ARP message, it gives the message to ARP.
+
 Thus, the program "skeleton" of a host could look something like this
-main()
-    open the input and output text file of the host.
-   do forever {
-        call transport-periodic-tasks
-        call Ethernet-receive-from-Bridge
-        sleep 1 second   /* the sleep is necessary to prevent you from using lots of CPU time */
-file:///media/jcobb/UTD-HDD/UTD-Files/Classes/...
-8 of 9 10/25/18, 5:24 PM
-}
-Layers of Routers and Bridges
+>main()
+>    open the input and output text file of the host.
+>   do forever {
+>        call transport-periodic-tasks
+>        call Ethernet-receive-from-Bridge
+>        sleep 1 second   // the sleep is necessary to prevent you from using lots of CPU time
+>}
+
+### Layers of Routers and Bridges
 If you understand how hosts behave, you should be able to do routers and bridges. Bridges are
 simpler, routers a little more complicated. Both of them operate once a second, just like a host
 does. I.e., every second, read all input files to check for new messages (and process them), and
 check if anything new needs to be done (e.g., hello messages)
-Remarks
+
+## Remarks
 Your program must run in the Unix machines on campus (not your laptop!!!!). I recommend
 cs1, cs2, cs3, and babbage. You can use any language you want. When you turn it in, you send
 us the code in elearning, along with detailed instructions on how to compile it (which command
@@ -353,6 +354,5 @@ time to make it nice) If it runs correctly on several scenarios that I post late
 There might be some details I did not mention, but your code must follow the typical and
 obvious behavior. E.g., if a host is sending to a destination host on the same network, it sends
 the messages directly to the host rather than via the default router, etc.
+
  Happy programming !!!
-file:///media/jcobb/UTD-HDD/UTD-Files/Classes/...
-9 of 9 10/25/18, 5:24 PM
