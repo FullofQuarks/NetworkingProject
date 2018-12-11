@@ -49,7 +49,7 @@ void readFile(vector<string> files, struct bridge *b)
 {
     //Multiple hosts, so we will need to keep track of multiple file positions
     streampos pos[files.size()];
-    
+
     while(1)
     {
         for(int ix = 0; ix < files.size(); ++ix)
@@ -84,7 +84,6 @@ void process(string newFrame, struct bridge *b, int port)
     if(b->hostCache[sourceEthAddr][0] == 0)
     {
         b->hostCache[sourceEthAddr][0] = port;
-        cout << "Added ethernet address " << sourceEthAddr << " to port " << (port+1) << endl;
     }
 }
 
