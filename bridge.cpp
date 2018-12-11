@@ -8,6 +8,7 @@
 
 using namespace std;
 
+void createFiles(int, int);
 void readFile();
 
 struct bridge {
@@ -31,6 +32,9 @@ int main(int argc, char **argv) {
     {
         newBridge.neighbors[ix] = strtol(argv[ix+3], NULL, 10);
     }
+
+    //Create the files
+    createFiles(newBridge.id, newBridge.numPorts);
     readFile();
     return 0;
 }
@@ -51,4 +55,26 @@ void readFile()
         fileOpen.close();
     }
 
+}
+
+void createFiles(int bid, int numPorts)
+{
+    for(int ix = 0; ix < numPorts; ++ix)
+    {
+        //Create to file
+        ofstream toFile;
+        string file = "toB";
+        file = file + to_string(bid);
+        file = file + "P" + to_string(ix+1) + ".txt";
+        toFile.open(file, ios::app);
+        toFile.close();
+
+        //Create from file
+        ofstream fromFile;
+        file = "fromB";
+        file = file + to_string(bid);
+        file = file + "P" + to_string(ix+1) + ".txt";
+        fromFile.open(file, ios::app);
+        fromFile.close();
+    }
 }

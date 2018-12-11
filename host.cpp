@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include <string.h>
+#include <string>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,7 +8,8 @@
 
 using namespace std;
 
-void readFile();
+void createFile(string);
+void readFile(string);
 void printHost(struct host);
 
 struct host {
@@ -38,21 +39,26 @@ int main(int argc, char **argv) {
     newHost.bridgePort = strtol(argv[7], NULL, 10);
     newHost.toIP[0] = argv[8][0] - '0';
     newHost.toIP[1] = argv[9][0] - '0';
+    string fromFile = "toB";
+    fromFile = fromFile + argv[6] + "P" + argv[7] + ".txt";
     if(argc == 11)
         newHost.message = argv[10];
     else
         newHost.message = " ";
+
+    //Create file if not exist
+    createFile(fromFile);
     printHost(newHost);
-    readFile();
+    readFile(fromFile);
     return 0;
 }
 
-void readFile()
+void readFile(string fromFile)
 {
     streampos b;
     while(1)
     {
-        ifstream fileOpen("host.txt");
+        ifstream fileOpen(fromFile);
         fileOpen.seekg(b);
         string line;
         fileOpen >> line;
@@ -61,6 +67,7 @@ void readFile()
             b = fileOpen.tellg();
         sleep(1);
         fileOpen.close();
+        line = "";
     }
 
 }
@@ -77,4 +84,11 @@ void printHost(struct host newHost)
     cout << "BridgePort: " << newHost.bridgePort << endl;
     cout << "Communicating with IP: " << newHost.toIP[0] << ", " << newHost.toIP[1] << endl;
     cout << "Message: " << newHost.message << endl;
+}
+
+void createFile(string file)
+{
+    ofstream newFile;
+    newFile.open(file, ios::app);
+    newFile.close();
 }
