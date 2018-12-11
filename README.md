@@ -23,7 +23,7 @@ will not be happy about (hence, possible point deduction).
 We will run your code in the UTD unix machine that you mention in the README file, and see
 if it works.
 
-#Overview
+## Overview
 We will simulate an Internetwork by having a group of Unix processes running in the
 background (batch mode basically). Each process will represent a node in the network: a
 bridge, a router, or a host PC. Since these are processes and not actual computer equipment,
@@ -33,9 +33,7 @@ represents the physical link (more on this later). The reason I use text files a
 twofold: a) I don't require you to know sockets in the class, and b) at the end of the execution,
 each link (i.e. text file) will have stored in it all the messages that were sent between the two
 nodes at its endpoints. This actually makes our grading easier.
-Consider the following figure
-file:///media/jcobb/UTD-HDD/UTD-Files/Classes/...
-1 of 9 10/25/18, 5:24 PM
+
 The Internetwork consistes of three networks (networks 1, 2, and 3 :=) ), it has one host in
 network 1, and one host in network 3. It also has three routers which join the networks
 together. Think of each network as a bridged Ethernet, the first network has two bridges, and
@@ -46,18 +44,18 @@ multiple ports, e.g., bridge B1 has six ports while bridge B3 has eight ports.
 You will write three programs, one program for hosts, one program for routers, and one
 program for bridges. The above Internetwork would be "created" by typing the following at the
 Unix command line prompt (which I simply assume is >)
+
 > host .... &
 > host .... &
 > bridge .... &
 > bridge .... &
-file:///media/jcobb/UTD-HDD/UTD-Files/Classes/...
-2 of 9 10/25/18, 5:24 PM
 > bridge .... &
 > bridge .... &
 > bridge .... &
 > router ... &
 > router ... &
 > router ... &
+
 where "host" is the code you wrote for a host process, "bridge" is the code for a bridge process,
 and "router" is the code for a router process, "..." are the arguments of each process (which I
 describe further below) and "&" puts the process in the "background" (batch mode) which
@@ -67,16 +65,19 @@ addresses are in the range 1 .. 99, with 99 being the broadcast address. For IP 
 the network number and the host number are in the range 1 .. 9 (9 is not broadcast, it's also a
 host, I will not use an IP broadcast). Bridges also have id's; I assume each bridge has an ID in
 the range 1 .. 9.
-Files Instead of Links
+
+## Files Instead of Links
 As mentioned above, the physical links will be represented by text files. In general, assume you
 have two nodes, A and B, joined by a physical link. We will have two text files: one for the
 messages from A to B, and another for the messages from B to A. These text files are NEVER
 OVERWRITTEN. I.e., for the file from A to B, A "appends" (without overwritting) its messages
 to the file, and B reads the messages from this file.
+
 Files will be named as follows. Consider bridge B3. It has eight ports. For each port X, there
 will be two files, fromB3PX.txt and toB3PX.txt. When B3 sends an "Ethernet" message over
 port X, it appends it to the file toB3PX.txt. When B3 reads an Ethernet message from port X, it
 reads it from fromB3PX.txt
+
 Consider now the host in network 1. When it sends a message over the Ethernet, it appends it
 to toB1P1.txt, and when it reads Ethernet messages, it reads them from fromB1P1.txt. The
 behavior of the router is similar, except that it has multiple interfaces.
@@ -84,6 +85,7 @@ The special case, unfortunately, is links between bridges. Bridges will be aware
 neighboring bridges are (see arguments below). This doesn't happen in practice but I can't get
 around it, so it will be a special case. So when B1 sends a message over to B2, it appends it to
 the file B1B2.txt (and vicecersa).
+
 Note that each text file has a single process that reads from it and a single process that
 appends to it. That should work fine (no need for locking the file). In C it works great, read
 from an input file until you get and EOF, then you wait a while (a second) and when you read
@@ -92,15 +94,15 @@ again either you get another EOF (the other node did not send anything) or you g
 one way to do this is to read until an EOF, then close the file, reopen it a second later, and read
 again, but skip over the bytes you read before (yes, you have to remember how many bytes you
 read before)
-Arguments to each Process
+
+## Arguments to each Process
 So how do nodes know which files to open? The arguments of each process will give to the
 process all the configuration information that it needs. I.e., you "design" a network (draw a
-file:///media/jcobb/UTD-HDD/UTD-Files/Classes/...
-3 of 9 10/25/18, 5:24 PM
 graph like the above), determine by hand port #'s etc., then you give these numbers to the
 processes as arguments (no DHCP :)).  We next overview the arguments of each type of
 process.
-Arguments to Hosts
+
+### Arguments to Hosts
 The arguments to a host are:
 Its IP address
 Its Ethernet address
@@ -109,71 +111,84 @@ The ID of the bridge it is attached to
 the port number of the bridge to which it is attached to 
 The IP address of a "destination node" to whom it wants to send a data string
 The data string itself (which is just an arbitrary string of text)
+
 For example, the host in network 1 could have the following arguments
 > host 1 1 29 1 2 1 1 3 3  "This is a string I want to send to node (3, 3)"
 Its IP address is (1,1), its Ethernet address is 29, its default router is (1, 2),  the ID of the
 bridge it is attached to is 1, the port number of the bridge to which it is attached to is 1, the IP
 address of the destination node to which it wants to send a data string is (3,3), and the string it
 wants to send is "This is a string I want to send to node (3, 3)".
+
 If a host is not sending a string, then its last argument is the port number of the bridge it is
 attached to.
+
 Note that a host should be ready and willing to receive a string from ANY other host. E.g., (3,
 3) does not know that (1, 1) is going to send it a string; the packets simply arrive at (3, 3) and
 (3, 3) should be able to deal with them.
+
 A host will only send (at most) one string, but it could receive strings from multiple other
 hosts.
-Arguments to Routers
+
+### Arguments to Routers
 The arguments to a router are three values for each network to which it is attached to:
 1. Its IP address in that network
 2. The bridge ID and port number of the bridge to which it is attached to
 3. the Ethernet address of the router (in that particular network)
-E.g.,  the router than joins network 4 and network 3, would have the following arguments
+E.g.,  the router than joins network 4 and network 3, would have the following argumen
+
 > router 4 2  4 5 18  3 1 5 5 75
+
 The router is connected to two networks. In the first one, its IP address is (4, 2), the bridge ID
 is 4 and the port of the bridge is 5, and the Ethernet address of the router is 18. In the second
 network, the IP address of the router is (3, 1), the bridge id is 5, the port # is 5, and the
 Ethernet address of the router is 75
-Arguments to Bridges
+
+### Arguments to Bridges
 The arguemnts to a bridge are as follows
-file:///media/jcobb/UTD-HDD/UTD-Files/Classes/...
-4 of 9 10/25/18, 5:24 PM
 The ID of the bridge
 The number of ports in the bridge
 A list of neighboring bridges (if any)
 For example, Bridge 1 will have the following arguments
+
 > bridge 1 6 2
+
 The bridge ID is 1, it has six ports (1 .. 6), and it has only one neighbor (it could have more, but
 I only have one in the picture), which is B2.
-Functionality of Each node
+
+## Functionality of Each node
 We next overview the functionality of all the nodes. Basically, it is a simple Internetwork.
-Functionality Bridges
+
+### Functionality Bridges
 The job of the bridge is to forward "Ethernet" messages to their appropriate location. Ethernet
 messages whose destination is the broadcast address will be sent out over all ports (except
 where it came in, of course), and messages addressed to a specific Ethernet address (i.e.
 unicast) will be forwarded along the appropriate port.
+
 Bridges will learn about the location of specific Ethernet addresses in the same way as
 discussed in class, i.e., by observing the source address of each message. They will keep a
 cache of addresses they have learned. For simplicity, cache entries will not expire. If the
 destination address is not in the cache, the message is replicated along all ports.
 An Ethernet message (in the text files described above) has the following format
 Ethernet-Destination Ethernet-Source Packet-Type <packet from a higher layer>
+
 E.g.:
 28 19 IP etc.
+
 is an Ethernet message with Ethernet destination 28, Ethernet source 19, and it is an IP packet
 (literally the letters "IP"), the rest of they bytes correspond to the rest of the IP packet. The
 bridges don't care about the specific contents of the higher layer packet. There are several
 higher layers, as you will see next; IP is just one of them.
+
 For simplicity, packets will end with a new-line (end-of-line, or whatever you want to call it).
 That will allow us to view the messages in a simple way with a regular text editor, and will also
 simplify things for you when you parse the input files of a node.
-Functionality of Routers
+
+### Functionality of Routers
 Basic IP forwarding
 The main function of routers is to forward "IP" messages until the message reaches its ultimate
 destination (the destination host). So, routers need to find a path to reach any network. To do
 so, we will use a very simple routing protocol: broadcast :)
 IP messages have the following format
-file:///media/jcobb/UTD-HDD/UTD-Files/Classes/...
-5 of 9 10/25/18, 5:24 PM
 IP destination-IP source-IP <contents of a transport layer message>
 E.g.
 IP 1 1 3 3 etc.
