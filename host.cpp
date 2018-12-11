@@ -8,7 +8,7 @@
 
 using namespace std;
 
-void createFile(string);
+void createFiles(string);
 void readFile(string);
 void printHost(struct host);
 
@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
         newHost.message = " ";
 
     //Create file if not exist
-    createFile(fromFile);
+    createFiles(fromFile);
     printHost(newHost);
     readFile(fromFile);
     return 0;
@@ -86,7 +86,7 @@ void printHost(struct host newHost)
     cout << "Message: " << newHost.message << endl;
 }
 
-void createFile(string file)
+void createFiles(string file)
 {
     ofstream newFile;
     newFile.open(file, ios::app);
