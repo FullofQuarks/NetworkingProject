@@ -22,7 +22,6 @@ struct host {
 };
 
 int main(int argc, char **argv) {
-    cout << "Hello, World!" << endl;
     if(argc < 10 || argc > 11)
     {
         cout << "Wrong arguments used." << endl;

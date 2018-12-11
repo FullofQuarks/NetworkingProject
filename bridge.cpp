@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include <vector>
 
 using namespace std;
 
@@ -14,18 +13,24 @@ void readFile();
 struct bridge {
     int id;
     int numPorts;
-    vector<int> neighbors;
+    int *neighbors;
 };
 
 int main(int argc, char **argv) {
-    cout << "Hello, World!" << endl;
-    if(argc < 10 || argc > 11)
+    if(argc < 3)
     {
         cout << "Wrong arguments used." << endl;
         exit(1);
     }
 
-    struct bridge newHost;
+    struct bridge newBridge;
+    newBridge.id = strtol(argv[1], NULL, 10);
+    newBridge.numPorts = strtol(argv[2], NULL, 10);
+    newBridge.neighbors = new int[argc-3];
+    for(int ix = 0; ix < argc-3; ++ix)
+    {
+        newBridge.neighbors[ix] = strtol(argv[ix+3], NULL, 10);
+    }
     readFile();
     return 0;
 }
