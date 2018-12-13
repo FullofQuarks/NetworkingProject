@@ -36,3 +36,5 @@ bridge
 host
 
 starthost\.sh
+
+*.txt
