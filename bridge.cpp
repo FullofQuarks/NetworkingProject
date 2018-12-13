@@ -15,6 +15,7 @@ struct bridge {
     int id;
     int numPorts;
     int *neighbors;
+    int numNeighbors;
     int hostCache[100] = {};
 };
 
@@ -38,6 +39,7 @@ int main(int argc, char **argv) {
     for(int ix = 0; ix < argc-3; ++ix)
     {
         newBridge->neighbors[ix] = strtol(argv[ix+3], NULL, 10);
+        newBridge->numNeighbors++;
     }
 
     //Create the files
@@ -109,6 +111,15 @@ void process(string newFrame, struct bridge *b, int port)
                 toFile.close();
             }
         }
+        for(int ix = 0; ix < b->numNeighbors; ++ix)
+        {
+            ofstream toFile;
+            string toFilename = "B";
+            toFilename = toFilename + to_string(b->id) + "B" + to_string(b->neighbors[ix]) + ".txt";
+            toFile.open(toFilename, ios::app);
+            toFile << newFrame << '\n';
+            toFile.close();
+        }
     }
     else //Destination ethernet address known, forward frame to that port
     {
@@ -159,6 +170,7 @@ vector<string> createFiles(int bid, int numPorts, int neighbors[], int numNeighb
         file = file + to_string(neighbors[ix]) + "B" + to_string(bid) + ".txt";
         tobridgeFile.open(file, ios::app);
         tobridgeFile.close();
+        v.push_back(file);
     }
 
     return v;
