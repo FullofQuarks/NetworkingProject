@@ -68,6 +68,7 @@ void readFile(vector<string> files, struct bridge *b)
                 pos[ix] = fileOpen.tellg();
             }
             fileOpen.close();
+            line.clear();
         }
         sleep(1);
     }
@@ -105,7 +106,7 @@ void process(string newFrame, struct bridge *b, int port)
                 toFilename = toFilename + to_string(b->id) + "P" + to_string(ix+1) + ".txt";
                 toFile.open(toFilename, ios::app);
                 toFile << newFrame << '\n';
-                toFile.close()
+                toFile.close();
             }
         }
     }
