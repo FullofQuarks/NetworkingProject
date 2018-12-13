@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
         newHost->message = argv[10];
     else
         newHost->message = " ";
-    printHost(newHost);
+    //printHost(newHost);
 
     //Create from file if not exist
     createFiles(newHost);
@@ -97,24 +97,43 @@ void process(string command, struct host *newHost)
     if(destEthAddr == 99)
     {
         string arpCommand;
-        getline(ss, arpCommand);
-        if(arpCommand.compare(0,5,"ARP"))
+        ss >> arpCommand;
+        if(arpCommand.compare(0,4," ARP"))
         {
             cout << "This is an ARP message.\n";
-            int tgtIP[2];
-            int srcIP[2];
-            int srcEth;
-            ss >> tgtIP[0];
-            ss >> tgtIP[1];
-            ss >> srcIP[0];
-            ss >> srcIP[1];
-            ss >> srcEth;
-            //Then it's my address!
-            if(tgtIP[0] == newHost->ip[0] && tgtIP[1] == newHost->ip[1])
+            string line;
+            ss >> line;
+            if(line == "REQ")
             {
-                newHost->ARPtable[srcIP[0]][srcIP[1]] = srcEth;
+                int tgtIP[2];
+                int srcIP[2];
+                int srcEth;
+                ss >> tgtIP[0];
+                ss >> tgtIP[1];
+                ss >> srcIP[0];
+                ss >> srcIP[1];
+                ss >> srcEth;
+                //Then it's my address!
+                if(tgtIP[0] == newHost->ip[0] && tgtIP[1] == newHost->ip[1])
+                {
+                    newHost->ARPtable[srcIP[0]][srcIP[1]] = srcEth;
+                    
+                    //Send ARP Reply
+                    //ARP REP target-IP-address target-Ethernet-address source-IP-address source-Ethernet-address
+                    string reply = "ARP REP ";
+                    reply = reply + to_string(tgtIP[0]) + " " + to_string(tgtIP[1]) + " " + to_string(newHost->ethAddr) + " " + to_string(srcIP[0]) + " " + to_string(srcIP[1]) + " " + to_string(sourceEthAddr);
+                    cout << reply << endl;
+                }
             }
-
+            else if(line == "REP")
+            {
+                int tgtIP[2];
+                int tgtEthAddr;
+                ss >> tgtIP[0];
+                ss >> tgtIP[1];
+                ss >> tgtEthAddr;
+                cout << "ARP replied with target address of: " << tgtEthAddr << endl;
+            }
         }
     }
     else if(destEthAddr == newHost->ethAddr)
