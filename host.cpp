@@ -133,10 +133,12 @@ void process(string command, struct host *newHost)
             }
         }
     }
+    //This frame was meant for us!
     else if(destEthAddr == newHost->ethAddr)
     {
         string line;
         ss >> line;
+        //Deal with ARP reply
         if(line.compare(0,8," ARP REP"))
         {
             int tgtIP[2];
@@ -144,7 +146,7 @@ void process(string command, struct host *newHost)
             ss >> tgtIP[0];
             ss >> tgtIP[1];
             ss >> tgtEthAddr;
-            cout << "ARP replied with target address of: " << tgtEthAddr << ". Mine is " << newHost->ethAddr << endl;
+            newHost->ARPtable[tgtIP[0]][tgtIP[1]] = tgtEthAddr;
         }
     }
     else //Not destined for this host, drop packet
