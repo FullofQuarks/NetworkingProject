@@ -15,7 +15,7 @@ struct bridge {
     int id;
     int numPorts;
     int *neighbors;
-    int hostCache[100][1] = {};
+    int hostCache[100] = {};
 };
 
 //Functions
@@ -84,10 +84,10 @@ void process(string newFrame, struct bridge *b, int port)
     ss << newFrame;
     ss >> sourceEthAddr;
     ss >> destEthAddr;
-    if(b->hostCache[sourceEthAddr][0] == 0)
+    if(b->hostCache[sourceEthAddr] == 0)
     {
 	//The port number is the index of the file vector, plus one
-    b->hostCache[sourceEthAddr][0] = port+1;
+    b->hostCache[sourceEthAddr] = port+1;
     }
 
     //We've extracted the layer 2 headers, now get the remainder of the frame
@@ -99,7 +99,7 @@ void process(string newFrame, struct bridge *b, int port)
     {
         for(int ix = 0; ix < b->numPorts; ++ix)
         {
-            if((ix+1) != b->hostCache[sourceEthAddr][0])
+            if((ix+1) != b->hostCache[sourceEthAddr])
             {
                 ofstream toFile;
                 string toFilename = "fromB";
@@ -114,7 +114,7 @@ void process(string newFrame, struct bridge *b, int port)
     {
         ofstream toFile;
         string toFilename = "fromB";
-        toFilename = toFilename + to_string(b->id) + "P" + to_string(b->hostCache[destEthAddr][0]) + ".txt";
+        toFilename = toFilename + to_string(b->id) + "P" + to_string(b->hostCache[destEthAddr]) + ".txt";
         toFile.open(toFilename, ios::app);
         toFile << newFrame << '\n';
         toFile.close();
