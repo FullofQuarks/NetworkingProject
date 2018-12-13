@@ -15,11 +15,11 @@ struct bridge {
     int id;
     int numPorts;
     int *neighbors;
-    int hostCache[100][1] = {};
+    int hostCache[100] = {};
 };
 
 //Functions
-vector<string> createFiles(int, int);
+vector<string> createFiles(int, int, int [], int);
 void readFile(vector<string>, struct bridge *);
 void process(string, struct bridge *, int);
 int lineToPort(string);
@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
     }
 
     //Create the files
-    vector<string> files = createFiles(newBridge->id, newBridge->numPorts);
+    vector<string> files = createFiles(newBridge->id, newBridge->numPorts, newBridge->neighbors, (argc-3));
     readFile(files, newBridge);
     return 0;
 }
@@ -80,14 +80,14 @@ void process(string newFrame, struct bridge *b, int port)
     //Strip packet of ethernet headers
     int sourceEthAddr, destEthAddr;
     stringstream ss;
-    cout << "Processing command " << newFrame << endl;
+    cout << "Bridge Processing command " << newFrame << endl;
     ss << newFrame;
     ss >> sourceEthAddr;
     ss >> destEthAddr;
-    if(b->hostCache[sourceEthAddr][0] == 0)
+    if(b->hostCache[sourceEthAddr] == 0)
     {
 	//The port number is the index of the file vector, plus one
-    b->hostCache[sourceEthAddr][0] = port+1;
+    b->hostCache[sourceEthAddr] = port+1;
     }
 
     //We've extracted the layer 2 headers, now get the remainder of the frame
@@ -99,7 +99,7 @@ void process(string newFrame, struct bridge *b, int port)
     {
         for(int ix = 0; ix < b->numPorts; ++ix)
         {
-            if((ix+1) != b->hostCache[sourceEthAddr][0])
+            if((ix+1) != b->hostCache[sourceEthAddr])
             {
                 ofstream toFile;
                 string toFilename = "fromB";
@@ -114,14 +114,15 @@ void process(string newFrame, struct bridge *b, int port)
     {
         ofstream toFile;
         string toFilename = "fromB";
-        toFilename = toFilename + to_string(b->id) + "P" + to_string(b->hostCache[destEthAddr][0]) + ".txt";
+        toFilename = toFilename + to_string(b->id) + "P" + to_string(b->hostCache[destEthAddr]) + ".txt";
         toFile.open(toFilename, ios::app);
+        toFile << newFrame << '\n';
         toFile.close();
     }
 
 }
 
-vector<string> createFiles(int bid, int numPorts)
+vector<string> createFiles(int bid, int numPorts, int neighbors[], int numNeighbors)
 {
     vector<string> v;
     for(int ix = 0; ix < numPorts; ++ix)
@@ -142,6 +143,22 @@ vector<string> createFiles(int bid, int numPorts)
         file = file + "P" + to_string(ix+1) + ".txt";
         fromFile.open(file, ios::app);
         fromFile.close();
+    }
+
+    for(int ix = 0; ix < numNeighbors; ++ix)
+    {
+        //Create neighbor bridge files if not exist
+        ofstream bridgeFile;
+        string file = "B";
+        file = file + to_string(bid) + "B" + to_string(neighbors[ix]) + ".txt";
+        bridgeFile.open(file, ios::app);
+        bridgeFile.close();
+
+        ofstream tobridgeFile;
+        file = "B";
+        file = file + to_string(neighbors[ix]) + "B" + to_string(bid) + ".txt";
+        tobridgeFile.open(file, ios::app);
+        tobridgeFile.close();
     }
 
     return v;
