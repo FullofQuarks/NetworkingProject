@@ -88,8 +88,8 @@ void readFile(string fromFile, struct host *newHost)
 
 void process(string command, struct host *newHost)
 {
-    //ARP reply
-    int sourceEthAddr, destEthAddr;
+    int sourceEthAddr=0;
+    int destEthAddr=0;
     stringstream ss;
     ss << command;
     ss >> sourceEthAddr;
@@ -122,23 +122,30 @@ void process(string command, struct host *newHost)
                     //ARP REP target-IP-address target-Ethernet-address source-IP-address source-Ethernet-address
                     string reply = "ARP REP ";
                     reply = reply + to_string(tgtIP[0]) + " " + to_string(tgtIP[1]) + " " + to_string(newHost->ethAddr) + " " + to_string(srcIP[0]) + " " + to_string(srcIP[1]) + " " + to_string(sourceEthAddr);
-                    cout << reply << endl;
+                    reply = to_string(newHost->ethAddr) + " " + to_string(sourceEthAddr) + " " + reply;
+                    ofstream toFile;
+                    string toFilename = "toB";
+                    toFilename = toFilename + to_string(newHost->bridge) + "P" + to_string(newHost->bridgePort) + ".txt";
+                    toFile.open(toFilename, ios::app);
+                    toFile << reply << '\n';
+                    toFile.close();
                 }
-            }
-            else if(line == "REP")
-            {
-                int tgtIP[2];
-                int tgtEthAddr;
-                ss >> tgtIP[0];
-                ss >> tgtIP[1];
-                ss >> tgtEthAddr;
-                cout << "ARP replied with target address of: " << tgtEthAddr << endl;
             }
         }
     }
     else if(destEthAddr == newHost->ethAddr)
     {
-
+        string line;
+        ss >> line;
+        if(line.compare(0,8," ARP REP"))
+        {
+            int tgtIP[2];
+            int tgtEthAddr;
+            ss >> tgtIP[0];
+            ss >> tgtIP[1];
+            ss >> tgtEthAddr;
+            cout << "ARP replied with target address of: " << tgtEthAddr << ". Mine is " << newHost->ethAddr << endl;
+        }
     }
     else //Not destined for this host, drop packet
     {
