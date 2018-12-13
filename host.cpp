@@ -39,13 +39,13 @@ int main(int argc, char **argv) {
     newHost.bridgePort = strtol(argv[7], NULL, 10);
     newHost.toIP[0] = strtol(argv[8], NULL, 10);
     newHost.toIP[1] = strtol(argv[9], NULL, 10);
-    string fromFile = "toB";
+    string fromFile = "fromB";
     fromFile = fromFile + argv[6] + "P" + argv[7] + ".txt";
     if(argc == 11)
         newHost.message = argv[10];
     else
         newHost.message = " ";
-printHost(newHost);
+    printHost(newHost);
     //Create file if not exist
     createFiles(fromFile);
     readFile(fromFile);
@@ -66,7 +66,7 @@ void readFile(string fromFile)
             b = fileOpen.tellg();
         sleep(1);
         fileOpen.close();
-        line = "";
+        line.clear();
     }
 
 }

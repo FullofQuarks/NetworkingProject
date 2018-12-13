@@ -80,7 +80,7 @@ void process(string newFrame, struct bridge *b, int port)
     //Strip packet of ethernet headers
     int sourceEthAddr, destEthAddr;
     stringstream ss;
-    cout << "Processing command " << newFrame << endl;
+    cout << "Bridge Processing command " << newFrame << endl;
     ss << newFrame;
     ss >> sourceEthAddr;
     ss >> destEthAddr;
