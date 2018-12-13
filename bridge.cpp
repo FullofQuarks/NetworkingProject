@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <vector>
 #include <sstream>
+#include <string>
 
 using namespace std;
 
@@ -14,7 +15,7 @@ struct bridge {
     int id;
     int numPorts;
     int *neighbors;
-    int hostCache[100][1] = {0};
+    int hostCache[100][1] = {};
 };
 
 //Functions
@@ -30,7 +31,7 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    struct bridge *newBridge;
+    struct bridge *newBridge = (struct bridge *)malloc(sizeof(struct bridge));
     newBridge->id = strtol(argv[1], NULL, 10);
     newBridge->numPorts = strtol(argv[2], NULL, 10);
     newBridge->neighbors = new int[argc-3];
@@ -52,7 +53,7 @@ void readFile(vector<string> files, struct bridge *b)
 
     while(1)
     {
-        for(int ix = 0; ix < files.size(); ++ix)
+        for(size_t ix = 0; ix < files.size(); ++ix)
         {
             ifstream fileOpen(files.at(ix));
             fileOpen.seekg(pos[ix]);
@@ -67,6 +68,7 @@ void readFile(vector<string> files, struct bridge *b)
                 pos[ix] = fileOpen.tellg();
             }
             fileOpen.close();
+            line.clear();
         }
         sleep(1);
     }
@@ -78,13 +80,45 @@ void process(string newFrame, struct bridge *b, int port)
     //Strip packet of ethernet headers
     int sourceEthAddr, destEthAddr;
     stringstream ss;
+    cout << "Processing command " << newFrame << endl;
     ss << newFrame;
     ss >> sourceEthAddr;
     ss >> destEthAddr;
     if(b->hostCache[sourceEthAddr][0] == 0)
     {
-        b->hostCache[sourceEthAddr][0] = port;
+	//The port number is the index of the file vector, plus one
+    b->hostCache[sourceEthAddr][0] = port+1;
     }
+
+    //We've extracted the layer 2 headers, now get the remainder of the frame
+    string restOfFrame;
+    getline(ss, restOfFrame);
+
+    // Broadcast to all nodes that is not the originating node
+    if(destEthAddr == 99)
+    {
+        for(int ix = 0; ix < b->numPorts; ++ix)
+        {
+            if((ix+1) != b->hostCache[sourceEthAddr][0])
+            {
+                ofstream toFile;
+                string toFilename = "fromB";
+                toFilename = toFilename + to_string(b->id) + "P" + to_string(ix+1) + ".txt";
+                toFile.open(toFilename, ios::app);
+                toFile << newFrame << '\n';
+                toFile.close();
+            }
+        }
+    }
+    else //Destination ethernet address known, forward frame to that port
+    {
+        ofstream toFile;
+        string toFilename = "fromB";
+        toFilename = toFilename + to_string(b->id) + "P" + to_string(b->hostCache[destEthAddr][0]) + ".txt";
+        toFile.open(toFilename, ios::app);
+        toFile.close();
+    }
+
 }
 
 vector<string> createFiles(int bid, int numPorts)
