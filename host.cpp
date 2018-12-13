@@ -14,6 +14,9 @@ void readFile(string, struct host *);
 void process(string, struct host *);
 void printHost(struct host *);
 void arp(struct host *, int []);
+void ipRecvFromEth(string, struct host *);
+void transRecvFromIP(string, int [], struct host *);
+void ipRecvFromTrans(string, int [], struct host *);
 
 struct host {
     int ip[2];
@@ -61,7 +64,6 @@ int main(int argc, char **argv) {
     if(argc == 11)
     {
         arp(newHost, newHost->toIP);
-
     }
     readFile(fromFile, newHost);
     return 0;
@@ -142,8 +144,9 @@ void process(string command, struct host *newHost)
         string line;
         ss >> line;
         //Deal with ARP reply
-        if(line.compare(0,8," ARP REP"))
+        if(!line.compare(0,7,"ARP REP"))
         {
+            cout << "OK" << endl;
             int tgtIP[2];
             int tgtEthAddr;
             ss >> tgtIP[0];
@@ -151,11 +154,60 @@ void process(string command, struct host *newHost)
             ss >> tgtEthAddr;
             newHost->ARPtable[tgtIP[0]][tgtIP[1]] = tgtEthAddr;
         }
+        //Packet from another Host
+        if(!line.compare(0,2, "IP"))
+        {
+            cout << "IP packet" << endl;
+            string ipPacket;
+            getline(ss, ipPacket);
+            ipRecvFromEth(ipPacket, newHost);
+        }
     }
     else //Not destined for this host, drop packet
     {
 
     }
+}
+
+void ipRecvFromEth(string packet, struct host *newHost)
+{
+    cout << packet << endl;
+    stringstream ss;
+    ss << packet;
+    string line;
+    int ip[2];
+    ss >> line;
+    ss >> line;
+    ss >> ip[0];
+    ss >> ip[1];
+    getline(ss, packet);
+    transRecvFromIP(packet, ip, newHost);
+}
+
+void transRecvFromIP(string session, int ip[2], struct host *newHost)
+{
+    cout << session << " from " << ip[0] << " " << ip[1] << endl;
+    stringstream ss;
+    ss << session;
+    string line, message;
+    ss >> line;
+    int sn, cn;
+    ss >> sn;
+    ss >> cn;
+    ss >> message;
+    if(!line.compare(0,2,"DA"))
+    {
+        string reply = "AK";
+        reply = reply + " " + to_string(sn) + " " + to_string(cn);
+        ipRecvFromTrans(reply, ip, newHost);
+    }
+}
+
+void ipRecvFromTrans(string reply, int ip[2], struct host *newHost)
+{
+    reply = "IP " + to_string(ip[0]) + " " + to_string(ip[1]) + " " + to_string(newHost->ip[0]) + " " + to_string(newHost->ip[1]) + " " + reply;
+    cout << reply << endl;
+    exit(1);
 }
 
 void arp(struct host *newHost, int ip[2])
