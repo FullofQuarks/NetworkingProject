@@ -19,6 +19,7 @@ void ipRecvFromEth(string, struct host *);
 void transRecvFromIP(string, int [], struct host *);
 void ipRecvFromTrans(string, int [], struct host *);
 void ethRecvFromIP(struct host *, int, string);
+void transportTasks(struct host *);
 
 struct host {
     int ip[2];
@@ -30,7 +31,17 @@ struct host {
     string message;
     int ARPtable[9][9] = {};
     string buffer;
+
 };
+
+struct transport {
+    int sn[2] = {}; //transport sequence numbers, indexes is the concurrent logical channels
+    int sent[2]; //has the frame been sent
+    string data;
+    int timeout[2] = {30, 30};
+    int pos;
+    string buffer[2];
+} session;
 
 int main(int argc, char **argv) {
     if(argc != 11 && argc != 8)
@@ -53,7 +64,7 @@ int main(int argc, char **argv) {
         newHost->message = argv[10];
     }
     else
-    newHost->message = " ";
+        newHost->message = "";
     string fromFile = "fromB";
     fromFile = fromFile + argv[6] + "P" + argv[7] + ".txt";
     //printHost(newHost);
@@ -81,6 +92,8 @@ void readFile(string fromFile, struct host *newHost)
         getline(fileOpen, line);
         if(!line.empty())
         {
+            if(!newHost->message.empty())
+                transportTasks(newHost);
             process(line, newHost);
         }
         if(fileOpen.tellg() != -1)
@@ -174,7 +187,55 @@ void process(string command, struct host *newHost)
 
 void transportTasks(struct host *newHost)
 {
-    
+    //Timeout is less than 30 seconds
+    if(session.timeout[0] < 30)
+    {
+
+    }
+    else
+    {
+        session.timeout[0] = 0;
+        string data = "DA ";
+        int size = newHost->message.length();
+        if(size - session.pos > 5)
+        {
+            string truncated = newHost->message.substr(0,5);
+            newHost->message = newHost->message.substr(5, newHost->message.length()-5);
+            data += to_string(session.sn[0]) + " " + to_string(0) + " " + truncated;
+            session.buffer[0] = truncated;
+            pos += 5;
+        }
+        else
+        {
+            data += to_string(session.sn[0]) + " " + to_string(0) + " " + newHost->message.substr(pos, size-pos);
+            session.buffer[0] = newHost->message.substr(pos, size-pos);
+        }
+        ipRecvFromTrans(data, newHost->ip, newHost);
+    }
+    if(session.timeout[1] < 30)
+    {
+
+    }
+    else
+    {
+        session.timeout[1] = 0;
+        string data = "DA ";
+        int size = newHost->message.length();
+        if(size - session.pos > 5)
+        {
+            string truncated = newHost->message.substr(0,5);
+            newHost->message = newHost->message.substr(5, newHost->message.length()-5);
+            data += to_string(session.sn[1]) + " " + to_string(1) + " " + truncated;
+            session.buffer[1] = truncated;
+            pos += 5;
+        }
+        else
+        {
+            data += to_string(session.sn[1]) + " " + to_string(1) + " " + newHost->message.substr(pos, size-pos);
+            session.buffer[1] = newHost->message.substr(pos, size-pos);
+        }
+        ipRecvFromTrans(data, newHost->ip, newHost);
+    }
 }
 
 void ipRecvFromEth(string packet, struct host *newHost)
@@ -189,13 +250,14 @@ void ipRecvFromEth(string packet, struct host *newHost)
     ss >> ip[1];
     getline(ss, packet);
     transRecvFromIP(packet, ip, newHost);
+    return;
 }
 
-void transRecvFromIP(string session, int ip[2], struct host *newHost)
+void transRecvFromIP(string data, int ip[2], struct host *newHost)
 {
-    cout << session << " from " << ip[0] << " " << ip[1] << endl;
+    cout << data << " from " << ip[0] << " " << ip[1] << endl;
     stringstream ss;
-    ss << session;
+    ss << data;
     string line, message;
     ss >> line;
     int sn, cn;
@@ -208,6 +270,11 @@ void transRecvFromIP(string session, int ip[2], struct host *newHost)
         reply = reply + " " + to_string(sn) + " " + to_string(cn);
         ipRecvFromTrans(reply, ip, newHost);
     }
+    else if(!line.compare(0,2,"AK"))
+    {
+        session.sn[cn] = sn;
+    }
+    return;
 }
 
 void ipRecvFromTrans(string reply, int ip[2], struct host *newHost)
@@ -234,6 +301,7 @@ void ethRecvFromIP(struct host *newHost, int destEthAddr, string packet)
     toFile.open(file, ios::app);
     toFile << frame << '\n';
     toFile.close();
+    return;
 }
 
 void arp(struct host *newHost, int ip[2])
