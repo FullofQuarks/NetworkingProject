@@ -94,8 +94,8 @@ void process(string newFrame, struct bridge *b, int port)
     string restOfFrame;
     getline(ss, restOfFrame);
 
-    //But where to forward the frame to?
-    if(destEthAddr == 99) //The destination ethernet address is unknown
+    // Broadcast to all nodes that is not the originating node
+    if(destEthAddr == 99)
     {
         for(int ix = 0; ix < b->numPorts; ++ix)
         {
@@ -113,7 +113,7 @@ void process(string newFrame, struct bridge *b, int port)
     else //Destination ethernet address known, forward frame to that port
     {
         ofstream toFile;
-        string toFilename = "toB";
+        string toFilename = "fromB";
         toFilename = toFilename + to_string(b->id) + "P" + to_string(b->hostCache[destEthAddr][0]) + ".txt";
         toFile.open(toFilename, ios::app);
         toFile.close();
