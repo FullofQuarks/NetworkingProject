@@ -27,8 +27,9 @@ struct host {
 };
 
 int main(int argc, char **argv) {
-    if(argc < 10 || argc > 11)
+    if(argc != 11 && argc != 8)
     {
+        cout << argc << endl;
         cout << "Wrong arguments used." << endl;
         exit(1);
     }
@@ -41,14 +42,16 @@ int main(int argc, char **argv) {
     newHost->gateway[1] = strtol(argv[5], NULL, 10);
     newHost->bridge = strtol(argv[6], NULL, 10);
     newHost->bridgePort = strtol(argv[7], NULL, 10);
-    newHost->toIP[0] = strtol(argv[8], NULL, 10);
-    newHost->toIP[1] = strtol(argv[9], NULL, 10);
-    string fromFile = "fromB";
-    fromFile = fromFile + argv[6] + "P" + argv[7] + ".txt";
     if(argc == 11)
+    {
+        newHost->toIP[0] = strtol(argv[8], NULL, 10);
+        newHost->toIP[1] = strtol(argv[9], NULL, 10);    
         newHost->message = argv[10];
+    }
     else
         newHost->message = " ";
+    string fromFile = "fromB";
+    fromFile = fromFile + argv[6] + "P" + argv[7] + ".txt";
     //printHost(newHost);
 
     //Create from file if not exist
@@ -157,7 +160,6 @@ void process(string command, struct host *newHost)
 
 void arp(struct host *newHost, int ip[2])
 {
-    cout << "Ethernet address for IP: " << ip[0] << ", " << ip[1] << " is " << newHost->ARPtable[ip[0]][ip[1]] << endl;
     // ARP request format:
     // ARP REQ target-IP-address source-IP-address source-Ethernet-address
     string arpRequest = to_string(newHost->ethAddr) + " " + to_string(99);
