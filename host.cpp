@@ -1,3 +1,8 @@
+/*
+* Nicholas Smith
+* nas150630@utdallas.edu
+* Fall 2019 4390.501
+*/
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -203,12 +208,12 @@ void transportTasks(struct host *newHost)
             newHost->message = newHost->message.substr(5, newHost->message.length()-5);
             data += to_string(session.sn[0]) + " " + to_string(0) + " " + truncated;
             session.buffer[0] = truncated;
-            pos += 5;
+            session.pos += 5;
         }
         else
         {
-            data += to_string(session.sn[0]) + " " + to_string(0) + " " + newHost->message.substr(pos, size-pos);
-            session.buffer[0] = newHost->message.substr(pos, size-pos);
+            data += to_string(session.sn[0]) + " " + to_string(0) + " " + newHost->message.substr(session.pos, size-session.pos);
+            session.buffer[0] = newHost->message.substr(session.pos, size-session.pos);
         }
         ipRecvFromTrans(data, newHost->ip, newHost);
     }
@@ -227,12 +232,12 @@ void transportTasks(struct host *newHost)
             newHost->message = newHost->message.substr(5, newHost->message.length()-5);
             data += to_string(session.sn[1]) + " " + to_string(1) + " " + truncated;
             session.buffer[1] = truncated;
-            pos += 5;
+            session.pos += 5;
         }
         else
         {
-            data += to_string(session.sn[1]) + " " + to_string(1) + " " + newHost->message.substr(pos, size-pos);
-            session.buffer[1] = newHost->message.substr(pos, size-pos);
+            data += to_string(session.sn[1]) + " " + to_string(1) + " " + newHost->message.substr(session.pos, size-session.pos);
+            session.buffer[1] = newHost->message.substr(session.pos, size-session.pos);
         }
         ipRecvFromTrans(data, newHost->ip, newHost);
     }

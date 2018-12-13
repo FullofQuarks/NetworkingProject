@@ -1,3 +1,8 @@
+/*
+* Nicholas Smith
+* nas150630@utdallas.edu
+* Fall 2019 4390.501
+*/
 #include <iostream>
 #include <fstream>
 #include <string.h>
