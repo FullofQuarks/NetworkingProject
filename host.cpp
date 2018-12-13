@@ -5,11 +5,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <sstream>
 
 using namespace std;
 
 void createFiles(struct host *);
-void readFile(string);
+void readFile(string, struct host *);
+void process(string, struct host *);
 void printHost(struct host *);
 void arp(struct host *, int []);
 
@@ -22,7 +24,6 @@ struct host {
     int toIP[2];
     string message;
     int ARPtable[9][9] = {};
-    string arpbuffer;
 };
 
 int main(int argc, char **argv) {
@@ -57,12 +58,13 @@ int main(int argc, char **argv) {
     if(argc == 11)
     {
         arp(newHost, newHost->toIP);
+
     }
-    readFile(fromFile);
+    readFile(fromFile, newHost);
     return 0;
 }
 
-void readFile(string fromFile)
+void readFile(string fromFile, struct host *newHost)
 {
     streampos b;
     string line;
@@ -73,7 +75,7 @@ void readFile(string fromFile)
         getline(fileOpen, line);
         if(!line.empty())
         {
-            cout << "Processing: " << line << endl;
+            process(line, newHost);
         }
         if(fileOpen.tellg() != -1)
             b = fileOpen.tellg();
@@ -84,13 +86,54 @@ void readFile(string fromFile)
 
 }
 
+void process(string command, struct host *newHost)
+{
+    //ARP reply
+    int sourceEthAddr, destEthAddr;
+    stringstream ss;
+    ss << command;
+    ss >> sourceEthAddr;
+    ss >> destEthAddr;
+    if(destEthAddr == 99)
+    {
+        string arpCommand;
+        getline(ss, arpCommand);
+        if(arpCommand.compare(0,5,"ARP"))
+        {
+            cout << "This is an ARP message.\n";
+            int tgtIP[2];
+            int srcIP[2];
+            int srcEth;
+            ss >> tgtIP[0];
+            ss >> tgtIP[1];
+            ss >> srcIP[0];
+            ss >> srcIP[1];
+            ss >> srcEth;
+            //Then it's my address!
+            if(tgtIP[0] == newHost->ip[0] && tgtIP[1] == newHost->ip[1])
+            {
+                newHost->ARPtable[srcIP[0]][srcIP[1]] = srcEth;
+            }
+
+        }
+    }
+    else if(destEthAddr == newHost->ethAddr)
+    {
+
+    }
+    else //Not destined for this host, drop packet
+    {
+
+    }
+}
+
 void arp(struct host *newHost, int ip[2])
 {
     cout << "Ethernet address for IP: " << ip[0] << ", " << ip[1] << " is " << newHost->ARPtable[ip[0]][ip[1]] << endl;
     // ARP request format:
     // ARP REQ target-IP-address source-IP-address source-Ethernet-address
     string arpRequest = to_string(newHost->ethAddr) + " " + to_string(99);
-    arpRequest = arpRequest + " ARP REQ " + to_string(ip[0]) + to_string(ip[1]) + to_string(newHost->ip[0]) + to_string(newHost->ip[1]) + to_string(newHost->ethAddr);
+    arpRequest = arpRequest + " ARP REQ " + to_string(ip[0]) + " " + to_string(ip[1]) + " " + to_string(newHost->ip[0]) + " " + to_string(newHost->ip[1]) + " " + to_string(newHost->ethAddr);
     ofstream toFile;
     string file = "toB";
     file = file + to_string(newHost->bridge) + "P" + to_string(newHost->bridgePort) + ".txt";
