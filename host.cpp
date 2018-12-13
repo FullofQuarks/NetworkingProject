@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    struct host *newHost;
+    struct host *newHost = (struct host *)malloc(sizeof(struct host));
     newHost->ip[0] = strtol(argv[1], NULL, 10);
     newHost->ip[1] = strtol(argv[2], NULL, 10);
     newHost->ethAddr = strtol(argv[3], NULL, 10);
@@ -62,7 +62,10 @@ void readFile(string fromFile)
         ifstream fileOpen(fromFile);
         fileOpen.seekg(b);
         getline(fileOpen, line);
-        cout << line << endl;
+        if(!line.empty())
+        {
+            cout << "Processing: " << line << endl;
+        }
         if(fileOpen.tellg() != -1)
             b = fileOpen.tellg();
         sleep(1);
