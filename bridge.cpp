@@ -116,6 +116,7 @@ void process(string newFrame, struct bridge *b, int port)
         string toFilename = "fromB";
         toFilename = toFilename + to_string(b->id) + "P" + to_string(b->hostCache[destEthAddr][0]) + ".txt";
         toFile.open(toFilename, ios::app);
+        toFile << newFrame << '\n';
         toFile.close();
     }
 
