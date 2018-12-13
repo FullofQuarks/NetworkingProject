@@ -19,7 +19,7 @@ struct bridge {
 };
 
 //Functions
-vector<string> createFiles(int, int);
+vector<string> createFiles(int, int, int [], int);
 void readFile(vector<string>, struct bridge *);
 void process(string, struct bridge *, int);
 int lineToPort(string);
@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
     }
 
     //Create the files
-    vector<string> files = createFiles(newBridge->id, newBridge->numPorts);
+    vector<string> files = createFiles(newBridge->id, newBridge->numPorts, newBridge->neighbors, (argc-3));
     readFile(files, newBridge);
     return 0;
 }
@@ -121,7 +121,7 @@ void process(string newFrame, struct bridge *b, int port)
 
 }
 
-vector<string> createFiles(int bid, int numPorts)
+vector<string> createFiles(int bid, int numPorts, int neighbors[], int numNeighbors)
 {
     vector<string> v;
     for(int ix = 0; ix < numPorts; ++ix)
@@ -142,6 +142,22 @@ vector<string> createFiles(int bid, int numPorts)
         file = file + "P" + to_string(ix+1) + ".txt";
         fromFile.open(file, ios::app);
         fromFile.close();
+    }
+
+    for(int ix = 0; ix < numNeighbors; ++ix)
+    {
+        //Create neighbor bridge files if not exist
+        ofstream bridgeFile;
+        string file = "B";
+        file = file + to_string(bid) + "B" + to_string(neighbors[ix]) + ".txt";
+        bridgeFile.open(file, ios::app);
+        bridgeFile.close();
+
+        ofstream tobridgeFile;
+        file = "B";
+        file = file + to_string(neighbors[ix]) + "B" + to_string(bid) + ".txt";
+        tobridgeFile.open(file, ios::app);
+        tobridgeFile.close();
     }
 
     return v;
