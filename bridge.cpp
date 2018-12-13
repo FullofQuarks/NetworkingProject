@@ -102,7 +102,7 @@ void process(string newFrame, struct bridge *b, int port)
             if((ix+1) != b->hostCache[sourceEthAddr][0])
             {
                 ofstream toFile;
-                string toFilename = "toB";
+                string toFilename = "fromB";
                 toFilename = toFilename + to_string(b->id) + "P" + to_string(ix+1) + ".txt";
                 toFile.open(toFilename, ios::app);
                 toFile << newFrame << '\n';
