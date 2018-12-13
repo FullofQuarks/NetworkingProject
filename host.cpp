@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <string.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,6 +18,7 @@ void arp(struct host *, int []);
 void ipRecvFromEth(string, struct host *);
 void transRecvFromIP(string, int [], struct host *);
 void ipRecvFromTrans(string, int [], struct host *);
+void ethRecvFromIP(struct host *, int, string);
 
 struct host {
     int ip[2];
@@ -27,17 +29,16 @@ struct host {
     int toIP[2];
     string message;
     int ARPtable[9][9] = {};
+    string buffer;
 };
 
 int main(int argc, char **argv) {
     if(argc != 11 && argc != 8)
     {
-        cout << argc << endl;
         cout << "Wrong arguments used." << endl;
         exit(1);
     }
-
-    struct host *newHost = (struct host *)malloc(sizeof(struct host));
+    struct host *newHost = new host;
     newHost->ip[0] = strtol(argv[1], NULL, 10);
     newHost->ip[1] = strtol(argv[2], NULL, 10);
     newHost->ethAddr = strtol(argv[3], NULL, 10);
@@ -48,11 +49,11 @@ int main(int argc, char **argv) {
     if(argc == 11)
     {
         newHost->toIP[0] = strtol(argv[8], NULL, 10);
-        newHost->toIP[1] = strtol(argv[9], NULL, 10);    
+        newHost->toIP[1] = strtol(argv[9], NULL, 10);
         newHost->message = argv[10];
     }
     else
-        newHost->message = " ";
+    newHost->message = " ";
     string fromFile = "fromB";
     fromFile = fromFile + argv[6] + "P" + argv[7] + ".txt";
     //printHost(newHost);
@@ -63,7 +64,7 @@ int main(int argc, char **argv) {
     //Process message in arguments, if any
     if(argc == 11)
     {
-        arp(newHost, newHost->toIP);
+        ipRecvFromTrans(newHost->message, newHost->toIP, newHost);
     }
     readFile(fromFile, newHost);
     return 0;
@@ -105,7 +106,6 @@ void process(string command, struct host *newHost)
         ss >> arpCommand;
         if(arpCommand.compare(0,4," ARP"))
         {
-            cout << "This is an ARP message.\n";
             string line;
             ss >> line;
             if(line == "REQ")
@@ -121,7 +121,7 @@ void process(string command, struct host *newHost)
                 //Then it's my address!
                 if(tgtIP[0] == newHost->ip[0] && tgtIP[1] == newHost->ip[1])
                 {
-                    newHost->ARPtable[srcIP[0]][srcIP[1]] = srcEth;
+                    newHost->ARPtable[srcIP[0]-1][srcIP[1]-1] = srcEth;
                     
                     //Send ARP Reply
                     //ARP REP target-IP-address target-Ethernet-address source-IP-address source-Ethernet-address
@@ -144,20 +144,23 @@ void process(string command, struct host *newHost)
         string line;
         ss >> line;
         //Deal with ARP reply
-        if(!line.compare(0,7,"ARP REP"))
+        if(!line.compare(0,3,"ARP"))
         {
-            cout << "OK" << endl;
-            int tgtIP[2];
-            int tgtEthAddr;
-            ss >> tgtIP[0];
-            ss >> tgtIP[1];
-            ss >> tgtEthAddr;
-            newHost->ARPtable[tgtIP[0]][tgtIP[1]] = tgtEthAddr;
+            ss >> line;
+            if(!line.compare(0,3,"REP"))
+            {
+                int tgtIP[2];
+                int tgtEthAddr;
+                ss >> tgtIP[0];
+                ss >> tgtIP[1];
+                ss >> tgtEthAddr;
+                newHost->ARPtable[tgtIP[0]-1][tgtIP[1]-1] = tgtEthAddr;
+                ipRecvFromTrans(newHost->buffer, tgtIP, newHost);
+            }
         }
         //Packet from another Host
         if(!line.compare(0,2, "IP"))
         {
-            cout << "IP packet" << endl;
             string ipPacket;
             getline(ss, ipPacket);
             ipRecvFromEth(ipPacket, newHost);
@@ -169,9 +172,13 @@ void process(string command, struct host *newHost)
     }
 }
 
+void transportTasks(struct host *newHost)
+{
+    
+}
+
 void ipRecvFromEth(string packet, struct host *newHost)
 {
-    cout << packet << endl;
     stringstream ss;
     ss << packet;
     string line;
@@ -205,9 +212,28 @@ void transRecvFromIP(string session, int ip[2], struct host *newHost)
 
 void ipRecvFromTrans(string reply, int ip[2], struct host *newHost)
 {
-    reply = "IP " + to_string(ip[0]) + " " + to_string(ip[1]) + " " + to_string(newHost->ip[0]) + " " + to_string(newHost->ip[1]) + " " + reply;
-    cout << reply << endl;
-    exit(1);
+    if(newHost->ARPtable[ip[0]-1][ip[1]-1] == 0)
+    {
+        reply = "IP " + to_string(ip[0]) + " " + to_string(ip[1]) + " " + to_string(newHost->ip[0]) + " " + to_string(newHost->ip[1]) + " " + reply;
+        newHost->buffer = reply;
+        arp(newHost, ip);
+    }
+    else
+    {
+        ethRecvFromIP(newHost, newHost->ARPtable[ip[0]-1][ip[1]-1], newHost->buffer);
+    }
+}
+
+void ethRecvFromIP(struct host *newHost, int destEthAddr, string packet)
+{
+    string frame;
+    frame += to_string(newHost->ethAddr) + " " + to_string(destEthAddr) + " " + packet;
+    ofstream toFile;
+    string file = "toB";
+    file = file + to_string(newHost->bridge) + "P" + to_string(newHost->bridgePort) + ".txt";
+    toFile.open(file, ios::app);
+    toFile << frame << '\n';
+    toFile.close();
 }
 
 void arp(struct host *newHost, int ip[2])
