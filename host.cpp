@@ -8,9 +8,9 @@
 
 using namespace std;
 
-void createFiles(string);
+void createFiles(struct host *);
 void readFile(string);
-void printHost(struct host);
+void printHost(struct host *);
 
 struct host {
     int ip[2];
@@ -29,25 +29,26 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    struct host newHost;
-    newHost.ip[0] = strtol(argv[1], NULL, 10);
-    newHost.ip[1] = strtol(argv[2], NULL, 10);
-    newHost.ethAddr = strtol(argv[3], NULL, 10);
-    newHost.gateway[0] = strtol(argv[4], NULL, 10);
-    newHost.gateway[1] = strtol(argv[5], NULL, 10);
-    newHost.bridge = strtol(argv[6], NULL, 10);
-    newHost.bridgePort = strtol(argv[7], NULL, 10);
-    newHost.toIP[0] = strtol(argv[8], NULL, 10);
-    newHost.toIP[1] = strtol(argv[9], NULL, 10);
+    struct host *newHost;
+    newHost->ip[0] = strtol(argv[1], NULL, 10);
+    newHost->ip[1] = strtol(argv[2], NULL, 10);
+    newHost->ethAddr = strtol(argv[3], NULL, 10);
+    newHost->gateway[0] = strtol(argv[4], NULL, 10);
+    newHost->gateway[1] = strtol(argv[5], NULL, 10);
+    newHost->bridge = strtol(argv[6], NULL, 10);
+    newHost->bridgePort = strtol(argv[7], NULL, 10);
+    newHost->toIP[0] = strtol(argv[8], NULL, 10);
+    newHost->toIP[1] = strtol(argv[9], NULL, 10);
     string fromFile = "fromB";
     fromFile = fromFile + argv[6] + "P" + argv[7] + ".txt";
     if(argc == 11)
-        newHost.message = argv[10];
+        newHost->message = argv[10];
     else
-        newHost.message = " ";
+        newHost->message = " ";
     printHost(newHost);
-    //Create file if not exist
-    createFiles(fromFile);
+
+    //Create from file if not exist
+    createFiles(newHost);
     readFile(fromFile);
     return 0;
 }
@@ -55,11 +56,11 @@ int main(int argc, char **argv) {
 void readFile(string fromFile)
 {
     streampos b;
+    string line;
     while(1)
     {
         ifstream fileOpen(fromFile);
         fileOpen.seekg(b);
-        string line;
         getline(fileOpen, line);
         cout << line << endl;
         if(fileOpen.tellg() != -1)
@@ -71,23 +72,35 @@ void readFile(string fromFile)
 
 }
 
-void printHost(struct host newHost)
+void printHost(struct host *newHost)
 {
     //Print host details
     int ix = 1;
     cout << "Printing out details for Host " << ix << endl;
-    cout << "IP address: " << newHost.ip[0] << ", " << newHost.ip[1] << endl;
-    cout << "Ethernet Address: " << newHost.ethAddr << endl;
-    cout << "Gateway: " << newHost.gateway[0] << ", " << newHost.gateway[1] << endl;
-    cout << "Bridge ID: " << newHost.bridge << endl;
-    cout << "BridgePort: " << newHost.bridgePort << endl;
-    cout << "Communicating with IP: " << newHost.toIP[0] << ", " << newHost.toIP[1] << endl;
-    cout << "Message: " << newHost.message << endl;
+    cout << "IP address: " << newHost->ip[0] << ", " << newHost->ip[1] << endl;
+    cout << "Ethernet Address: " << newHost->ethAddr << endl;
+    cout << "Gateway: " << newHost->gateway[0] << ", " << newHost->gateway[1] << endl;
+    cout << "Bridge ID: " << newHost->bridge << endl;
+    cout << "BridgePort: " << newHost->bridgePort << endl;
+    cout << "Communicating with IP: " << newHost->toIP[0] << ", " << newHost->toIP[1] << endl;
+    cout << "Message: " << newHost->message << endl;
 }
 
-void createFiles(string file)
+void createFiles(struct host *newHost)
 {
-    ofstream newFile;
-    newFile.open(file, ios::app);
-    newFile.close();
+    //Create "toBXPX.txt" file. We'll want to remember these files as we want to read from them
+    ofstream toFile;
+    string file = "toB";
+    file = file + to_string(newHost->bridge);
+    file = file + "P" + to_string(newHost->bridgePort) + ".txt";
+    toFile.open(file, ios::app);
+    toFile.close();
+
+    //Create "fromBXPX.txt" file
+    ofstream fromFile;
+    file = "fromB";
+    file = file + to_string(newHost->bridge);
+    file = file + "P" + to_string(newHost->bridgePort) + ".txt";
+    fromFile.open(file, ios::app);
+    fromFile.close();
 }
