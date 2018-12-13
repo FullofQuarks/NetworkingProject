@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+bridge
+
+host
+
+starthost\.sh
