@@ -11,6 +11,7 @@ using namespace std;
 void createFiles(struct host *);
 void readFile(string);
 void printHost(struct host *);
+void arp(struct host *, int []);
 
 struct host {
     int ip[2];
@@ -20,6 +21,8 @@ struct host {
     int bridgePort;
     int toIP[2];
     string message;
+    int ARPtable[9][9] = {};
+    string arpbuffer;
 };
 
 int main(int argc, char **argv) {
@@ -73,6 +76,21 @@ void readFile(string fromFile)
         line.clear();
     }
 
+}
+
+void arp(struct host *newHost, int ip[2])
+{
+    cout << "Ethernet address for IP: " << ip[0] << ", " << ip[1] << " is " << newHost->ARPtable[ip[0]][ip[1]] << endl;
+    // ARP request format:
+    // ARP REQ target-IP-address source-IP-address source-Ethernet-address
+    string arpRequest = to_string(newHost->ethAddr) + " " + to_string(99);
+    arpRequest = arpRequest + " ARP REQ " + to_string(ip[0]) + to_string(ip[1]) + to_string(newHost->ip[0]) + to_string(newHost->ip[1]) + to_string(newHost->ethAddr);
+    ofstream toFile;
+    string file = "toB";
+    file = file + to_string(newHost->bridge) + "P" + to_string(newHost->bridgePort) + ".txt";
+    toFile.open(file, ios::app);
+    toFile << arpRequest;
+    toFile.close();
 }
 
 void printHost(struct host *newHost)
