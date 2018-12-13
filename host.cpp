@@ -52,6 +52,12 @@ int main(int argc, char **argv) {
 
     //Create from file if not exist
     createFiles(newHost);
+
+    //Process message in arguments, if any
+    if(argc == 11)
+    {
+        arp(newHost, newHost->toIP);
+    }
     readFile(fromFile);
     return 0;
 }
@@ -89,7 +95,7 @@ void arp(struct host *newHost, int ip[2])
     string file = "toB";
     file = file + to_string(newHost->bridge) + "P" + to_string(newHost->bridgePort) + ".txt";
     toFile.open(file, ios::app);
-    toFile << arpRequest;
+    toFile << arpRequest << '\n';
     toFile.close();
 }
 
